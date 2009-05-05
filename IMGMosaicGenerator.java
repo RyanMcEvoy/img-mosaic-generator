@@ -1,8 +1,34 @@
+/*
+Copyright (c) 2009 Richard H. Tingstad
+
+Permission is hereby granted, free of charge, to any person
+obtaining a copy of this software and associated documentation
+files (the "Software"), to deal in the Software without
+restriction, including without limitation the rights to use,
+copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the
+Software is furnished to do so, subject to the following
+conditions:
+
+The above copyright notice and this permission notice shall be
+included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+OTHER DEALINGS IN THE SOFTWARE.
+ */
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Graphics;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
+import java.awt.event.WindowEvent;
+import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileWriter;
@@ -45,7 +71,7 @@ public class IMGMosaicGenerator {
 		boolean gui = true;
 		boolean stay = true;
 		if (args.length == 4) {
-			new IMGMosaicGenerator(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), args[3], 1, gui, stay);
+			new IMGMosaicGenerator(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), args[3], 1, gui, new boolean[]{ stay });
 		}
 		else if (args.length > 4 && args.length < 9) {
 			int threads = 1;
@@ -66,7 +92,7 @@ public class IMGMosaicGenerator {
 				}
 			}
 			if (!error)
-				new IMGMosaicGenerator(args[args.length - 4], Integer.parseInt(args[args.length - 3]), Integer.parseInt(args[args.length - 2]), args[args.length - 1], threads, gui, stay);
+				new IMGMosaicGenerator(args[args.length - 4], Integer.parseInt(args[args.length - 3]), Integer.parseInt(args[args.length - 2]), args[args.length - 1], threads, gui, new boolean[]{ stay });
 		}
 		else {
 			error = true;
@@ -93,7 +119,7 @@ public class IMGMosaicGenerator {
 	 * @param stay If program should not exit when done.
 	 */
 	public IMGMosaicGenerator(String filename, int tw, int th, String directory,
-			int numberOfThreads, boolean gui, boolean stay) {
+			int numberOfThreads, boolean gui, final boolean[] stay) {
 		if (numberOfThreads < 1) {
 			System.err.println("Number of threads can not be less than 1.");
 			System.exit(1);
@@ -143,6 +169,19 @@ public class IMGMosaicGenerator {
 				}
 			});
 			frame.getContentPane().add(panel, BorderLayout.CENTER);
+			frame.addWindowListener(new WindowListener() {
+				public void	windowActivated(WindowEvent e) {}
+				public void	windowClosed(WindowEvent e) {}
+				public void	windowClosing(WindowEvent e) {
+					if (stop[0])
+						System.exit(0);
+					stay[0] = false;
+				}
+				public void	windowDeactivated(WindowEvent e) {}
+				public void windowDeiconified(WindowEvent e) {}
+				public void	windowIconified(WindowEvent e) {}
+				public void	windowOpened(WindowEvent e) {}
+			});
 			frame.setVisible(true);
 		}
 
@@ -354,7 +393,8 @@ public class IMGMosaicGenerator {
 		}
 		paintPicture(filename + "2.html");
 		System.out.println("All done!");
-		if (!stay)
+		stop[0] = true;
+		if (!stay[0])
 			System.exit(0);
 	}
 
